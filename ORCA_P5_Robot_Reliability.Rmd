@@ -1,0 +1,67 @@
+---
+title: "P5 Robot Cooperative Ability Reliability"
+author: "Nichole Breeland"
+date: "06/07/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load packages}
+library(irr)
+library(lpSolve)
+```
+
+```{r import data}
+ability.data <- read.csv("P5_RobotTask_Ability_ReliabilitySet.csv", stringsAsFactors = FALSE)
+options(scipen = 999)
+```
+
+
+
+```{r recode data}
+#Recode child category as numeric
+ability.data$Participant_JW[ability.data$Participant_JW == "Child A"] <- 1
+ability.data$Participant_JW[ability.data$Participant_JW == "Child B"] <- 2
+ability.data$Participant_NB[ability.data$Participant_NB == "Child A"] <- 1
+ability.data$Participant_NB[ability.data$Participant_NB == "Child B"] <- 2
+
+#Recode handle category as numeric
+ability.data$Handle_JW[ability.data$Handle_JW == "CompleteDown_Blue"] <- 1
+ability.data$Handle_JW[ability.data$Handle_JW == "CompleteDown_Green"] <- 2
+ability.data$Handle_NB[ability.data$Handle_NB == "CompleteDown_Blue"] <- 1
+ability.data$Handle_NB[ability.data$Handle_NB == "CompleteDown_Green"] <- 2
+```
+
+
+```{r reliability stats}
+#Kappa for participant
+kappa2(ability.data[,c(4,8)], "unweighted")
+
+#Kappa for handle
+kappa2(ability.data[,c(5,9)], "unweighted")
+
+#Percent Agreement
+#datasubset
+Onset <- subset(ability.data, select = c("Onset_Time_JW", "Onset_Time_NB"))
+Offset <- subset(ability.data, select = c("Offset_Time_JW", "Offset_Time_NB"))
+#Percent Agreement for Onset and offset
+agree(Onset, tolerance = 8)
+agree(Offset, tolerance = 8)
+
+
+#Percent agreement total
+
+total.time <- data.frame(Onset, Offset)
+
+total.time <- data.frame(total.time_NB = c(total.time[,"Onset_Time_NB"], 
+                                           total.time[,"Offset_Time_NB"]),
+                         total.time_JW = c(total.time[,"Onset_Time_JW"],
+                                           total.time[,"Offset_Time_JW"]))
+
+agree(total.time, tolerance = 8)
+
+icc(total.time, model="twoway", type="agreement")
+```
